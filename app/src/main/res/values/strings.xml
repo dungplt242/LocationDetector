@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">LocationDetector</string>
+    <string name="take_photo">TAKE PHOTO</string>
+</resources>
