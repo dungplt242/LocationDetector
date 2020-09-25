@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,11 +63,44 @@ public class ImageCaptureActivity extends AppCompatActivity {
     private Bitmap getCapturedImageFromOutPath() {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        return BitmapFactory.decodeFile(outPath, options);
+//        return BitmapFactory.decodeFile(outPath, options);
+        Bitmap image = BitmapFactory.decodeFile(outPath, options);
+        return adjustImageOrientation(image);
     }
 
-    private void adjustImageOrientation(Bitmap bitmap) {
+    private Bitmap adjustImageOrientation(Bitmap bitmap) {
         // TODO: Implement this method
+        ExifInterface ei = null;
+        try {
+            ei = new ExifInterface(outPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+        return checkOrientationAndRotate(bitmap, orientation);
+    }
+
+    private Bitmap checkOrientationAndRotate(Bitmap bitmap, int orientation) {
+        switch(orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                return rotateImage(bitmap, 90);
+
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                return rotateImage(bitmap, 180);
+
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                return rotateImage(bitmap, 270);
+
+            case ExifInterface.ORIENTATION_NORMAL:
+            default:
+                return bitmap;
+        }
+    }
+
+    private Bitmap rotateImage(Bitmap source, int angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
     private void openCamera() {
