@@ -1,11 +1,13 @@
 package com.hfad.locationdetector;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -13,6 +15,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.widget.ImageView;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class ImageCaptureActivity extends AppCompatActivity {
 
@@ -49,11 +53,20 @@ public class ImageCaptureActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == CAMERA_PIC_REQUEST) {
-            Bitmap bitmap = getCapturedImageFromOutPath();
-            adjustImageOrientation(bitmap);
-            imageView.setImageBitmap(bitmap);
-            sendImageToServer();
+            onPostCapture();
         }
+    }
+
+    private void onPostCapture() {
+        Bitmap bitmap = getCapturedImageFromOutPath();
+        imageView.setImageBitmap(bitmap);
+        sendImageToServer();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (!outPath.isEmpty()) onPostCapture();
     }
 
     private void sendImageToServer() {
@@ -63,44 +76,39 @@ public class ImageCaptureActivity extends AppCompatActivity {
     private Bitmap getCapturedImageFromOutPath() {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-//        return BitmapFactory.decodeFile(outPath, options);
         Bitmap image = BitmapFactory.decodeFile(outPath, options);
         return adjustImageOrientation(image);
     }
 
     private Bitmap adjustImageOrientation(Bitmap bitmap) {
-        // TODO: Implement this method
-        ExifInterface ei = null;
         try {
-            ei = new ExifInterface(outPath);
-        } catch (IOException e) {
-            e.printStackTrace();
+            ExifInterface ei = new ExifInterface(outPath);
+            int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED);
+            return checkOrientationAndRotate(bitmap, orientation);
         }
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-        return checkOrientationAndRotate(bitmap, orientation);
+        catch (IOException e) { e.printStackTrace(); }
+        return bitmap;
     }
 
     private Bitmap checkOrientationAndRotate(Bitmap bitmap, int orientation) {
         switch(orientation) {
             case ExifInterface.ORIENTATION_ROTATE_90:
                 return rotateImage(bitmap, 90);
-
             case ExifInterface.ORIENTATION_ROTATE_180:
                 return rotateImage(bitmap, 180);
-
             case ExifInterface.ORIENTATION_ROTATE_270:
                 return rotateImage(bitmap, 270);
-
             case ExifInterface.ORIENTATION_NORMAL:
-            default:
-                return bitmap;
+            default: return bitmap;
         }
     }
 
     private Bitmap rotateImage(Bitmap source, int angle) {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+        return Bitmap.createBitmap(source, 0, 0,
+                source.getWidth(), source.getHeight(), matrix, true);
     }
 
     private void openCamera() {
@@ -111,7 +119,7 @@ public class ImageCaptureActivity extends AppCompatActivity {
     }
 
     private void setCaptureImageTemporaryPath(Intent intent) {
-        outPath = "/sdcard/" + generateImageName();
+        outPath = getString(R.string.image_store_folder) + generateImageName();
         File outFile = new File(outPath);
         Uri outUri = Uri.fromFile(outFile);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outUri);
@@ -119,7 +127,7 @@ public class ImageCaptureActivity extends AppCompatActivity {
 
     private String generateImageName() {
         Date date = new Date();
-        DateFormat df = new SimpleDateFormat("-mm-ss");
+        DateFormat df = new SimpleDateFormat("hh-mm-ss", new Locale.Builder().build());
         return df.format(date) + ".jpg";
     }
 
@@ -129,7 +137,7 @@ public class ImageCaptureActivity extends AppCompatActivity {
     }
 
     private void initComponents() {
-        imageView = (ImageView)findViewById(R.id.capturedImageView);
+        imageView = findViewById(R.id.capturedImageView);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LocationDetector</string>
     <string name="take_photo">TAKE PHOTO</string>
+    <string name="image_store_folder">/sdcard/</string>
 </resources>
