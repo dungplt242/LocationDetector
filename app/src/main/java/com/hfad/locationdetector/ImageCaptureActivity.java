@@ -2,27 +2,21 @@ package com.hfad.locationdetector;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.widget.ImageView;
-
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 
 import java.io.File;
 
-public class ImageCaptureActivity extends AppCompatActivity {
+public class ImageCaptureActivity extends Activity {
 
     private String [] permissions = {"android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
@@ -32,15 +26,12 @@ public class ImageCaptureActivity extends AppCompatActivity {
             "android.permission.CAMERA"};
 
     private final int CAMERA_PIC_REQUEST = 24;
-    private ImageView imageView;
     private String outPath;
-    private String uploadURL;
-    private Bitmap bitmap;
+    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_image_capture);
         initComponents();
         askForPermission();
         openCamera();
@@ -52,32 +43,19 @@ public class ImageCaptureActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == CAMERA_PIC_REQUEST) {
             postCaptureHandle();
         }
+        else finish();
     }
 
     private void postCaptureHandle() {
-        bitmap = getCapturedImageFromOutPath();
-        imageView.setImageBitmap(bitmap);
-        sendImageToServer();
+        intent.putExtra("imagePath", outPath);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (!outPath.isEmpty()) postCaptureHandle();
-    }
-
-    private void sendImageToServer() {
-        // TODO: Implement this method
-        VolleyMultipartRequest uploadRequest =
-                ImageRequest.Builder().createRequest(bitmap, uploadURL, outPath);
-        Volley.newRequestQueue(this).add(uploadRequest);
-    }
-
-    private Bitmap getCapturedImageFromOutPath() {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        Bitmap image = BitmapFactory.decodeFile(outPath, options);
-        return ImageHandling.Builder().adjustImageOrientation(image, outPath);
     }
 
     private void openCamera() {
@@ -101,8 +79,7 @@ public class ImageCaptureActivity extends AppCompatActivity {
     }
 
     private void initComponents() {
-        imageView = findViewById(R.id.capturedImageView);
-        uploadURL = getResources().getString(R.string.image_upload_url);
+        intent = getIntent();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
