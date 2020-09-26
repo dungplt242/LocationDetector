@@ -42,6 +42,7 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     private Bitmap currentImage;
     private String imagePath;
     private String uploadURL;
+    private float imageDirection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +97,7 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
 
     private void handleImageResponse(Intent data) {
         imagePath = data.getStringExtra("imagePath");
+        imageDirection = data.getFloatExtra("imageDirection", imageDirection);
         currentImage = getCapturedImageFromOutPath();
         imageView.setImageBitmap(currentImage);
     }
