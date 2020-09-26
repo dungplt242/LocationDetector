@@ -44,6 +44,7 @@ public class ImageRequest {
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
                 params.put("image", new DataPart(name, bitmapToByteArray(bmp)));
+                // TODO: put location & direction info into the parameters
                 return params;
             }
         };

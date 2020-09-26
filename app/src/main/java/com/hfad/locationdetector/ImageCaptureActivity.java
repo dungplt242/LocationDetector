@@ -17,7 +17,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import java.io.File;
 
@@ -34,10 +33,12 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
 
     private final int CAMERA_PIC_REQUEST = 24;
     private String outPath;
-    private float direction;
     private Intent intent;
+    private double direction;
+    private double longitude;
+    private double latitude;
 
-    //fields for sensors
+    // fields for sensors
     private SensorManager sensorManager;
     Sensor accelerometer;
     Sensor magnetometer;
@@ -50,17 +51,18 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
         initComponents();
         askForPermission();
         openCamera();
-        registerSensors();
-
     }
 
     private void registerSensors() {
-        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
-      }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerSensors();
+    }
 
     @Override
     protected void onDestroy() {
@@ -72,16 +74,26 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == CAMERA_PIC_REQUEST) {
+            getCurrentLocation();
             postCaptureHandle();
-        }
-        else finish();
+        } else finish();
+    }
+
+    private void getCurrentLocation() {
+        // TODO: Implement this method
     }
 
     private void postCaptureHandle() {
-        intent.putExtra("imagePath", outPath);
-        intent.putExtra("imageDirection", direction);
+        deliverInfoToIntent();
         setResult(RESULT_OK, intent);
         finish();
+    }
+
+    private void deliverInfoToIntent() {
+        intent.putExtra("imagePath", outPath);
+        intent.putExtra("imageDirection", direction);
+        intent.putExtra("imageLongitude", longitude);
+        intent.putExtra("imageLatitude", latitude);
     }
 
     @Override
@@ -112,6 +124,9 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
 
     private void initComponents() {
         intent = getIntent();
+        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE); // init sensors
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -124,33 +139,19 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
         }
     }
 
-
+    /** Handle sensor changing **/
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
-            mGravity = event.values;
-
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
-            mGeomagnetic = event.values;
-
-        if (mGravity != null && mGeomagnetic != null) {
-            float R[] = new float[9];
-            float I[] = new float[9];
-
-            if (SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic)) {
-
-                // orientation contains azimut, pitch and roll
-                float orientation[] = new float[3];
-                SensorManager.getOrientation(R, orientation);
-
-                direction = -orientation[0] * 360 / (2 * 3.14159f);
-            }
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) mGravity = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mGeomagnetic = event.values;
+        if (mGravity == null || mGeomagnetic == null) return;
+        float[] R = new float[9], I = new float[9];
+        if (SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic)) {
+            float[] orientation = new float[3];
+            SensorManager.getOrientation(R, orientation);
+            direction = -orientation[0] * 360 / (2 * 3.14159f);
         }
     }
-
     @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
-
+    public void onAccuracyChanged(Sensor sensor, int i) {}
 }
