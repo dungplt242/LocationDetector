@@ -3,9 +3,7 @@ package com.hfad.locationdetector;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
@@ -28,19 +26,11 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     private final int[] optionID =
             {R.drawable.ic_gallery, R.drawable.ic_camera, R.drawable.ic_send};
     private final String[] optionName = {"Gallery", "Camera", "Send"};
-
-    private enum Option {
-        GALLERY(0), CAMERA(1), SEND(2);
-        public final int value;
-        Option(int value) {this.value = value;}
-    }
+    private enum Option {GALLERY, CAMERA, SEND}
 
     // request code
     private final int CAMERA_REQUEST = 42;
     private final int GALLERY_REQUEST = 88;
-
-    // invalid state
-    private final double INVALID = 812;
 
     // recycler view related fields
     private RecyclerView recyclerView;
@@ -49,12 +39,7 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
 
     // image related fields TODO: Put the fields inside a class
     private ImageView imageView;
-    private String imagePath;
-    private String uploadURL;
-    private Bitmap currentImage;
-    private double imageDirection;
-    private double imageLongitude;
-    private double imageLatitude;
+    private SendPackage sendPackage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +52,8 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     private void initComponents() {
         imageView = findViewById(R.id.myImage);
         recyclerView = findViewById(R.id.mainRecyclerView);
-        uploadURL = getResources().getString(R.string.image_upload_url);
+        sendPackage = new SendPackage();
+        sendPackage.setUploadURL(getResources().getString(R.string.image_upload_url));
     }
 
     /** Display options on the recycler view **/
@@ -100,8 +86,8 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (currentImage == null) return;
-        imageView.setImageBitmap(currentImage);
+        if (sendPackage.getCurrentImage() == null) return;
+        imageView.setImageBitmap(sendPackage.getCurrentImage());
     }
 
     @Override
@@ -128,13 +114,13 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     }
 
     private void getGalleryImagePath(Uri imageUri) {
-        imagePath = imageUri.getPath();
+        sendPackage.setImagePath(imageUri.getPath());
     }
 
     private void displayGalleryImage(Uri imageUri) throws FileNotFoundException {
         final InputStream imageStream = getContentResolver().openInputStream(imageUri);
-        currentImage = BitmapFactory.decodeStream(imageStream);
-        imageView.setImageBitmap(currentImage);
+        sendPackage.setCurrentImage(BitmapFactory.decodeStream(imageStream));
+        imageView.setImageBitmap(sendPackage.getCurrentImage());
     }
 
     private void displayToastMessage(String message) {
@@ -143,28 +129,18 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
 
     /** Display captured images on the image view **/
     private void handleCameraResponse(Intent data) {
-        imagePath = data.getStringExtra("imagePath");
-        imageDirection = data.getDoubleExtra("imageDirection", INVALID);
-        imageLongitude = data.getDoubleExtra("imageLongitude", INVALID);
-        imageLatitude = data.getDoubleExtra("imageLatitude", INVALID);
-        currentImage = getCapturedImageFromOutPath();
-        imageView.setImageBitmap(currentImage);
-    }
-
-    private Bitmap getCapturedImageFromOutPath() {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        Bitmap image = BitmapFactory.decodeFile(imagePath, options);
-        return ImageHandling.Builder().adjustImageOrientation(image, imagePath);
+        sendPackage.update(data);
+        imageView.setImageBitmap(sendPackage.getCurrentImage());
     }
 
     /** Being executed when user select an option **/
     @Override
     public void onClick(int position) {
-        switch (position) {
-            case 0: openGallery(); break;
-            case 1: openCamera(); break;
-            case 2: sendImageToServer(); break;
+        Option userOption = Option.values()[position];
+        switch (userOption) {
+            case GALLERY: openGallery(); break;
+            case CAMERA: openCamera(); break;
+            case SEND: sendImageToServer(); break;
             default:
         }
     }
@@ -186,14 +162,15 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     }
 
     private void performRequest() {
-        if (currentImage == null) return;
+        if (sendPackage.getCurrentImage() == null) return;
         VolleyMultipartRequest uploadRequest =
-                ImageRequest.Builder().createRequest(currentImage, uploadURL, imagePath);
+                ImageRequest.Builder().createRequest(sendPackage);
         Volley.newRequestQueue(this).add(uploadRequest);
     }
 
     private void promptSending() {
-        if (currentImage == null) displayToastMessage("Image not found");
+        if (sendPackage.getCurrentImage() == null)
+            displayToastMessage("Image not found");
         else displayToastMessage("Let us guess where it is...");
     }
 }

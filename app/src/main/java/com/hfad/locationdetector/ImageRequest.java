@@ -1,6 +1,7 @@
 package com.hfad.locationdetector;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -36,15 +37,24 @@ public class ImageRequest {
         }
     };
 
-    public VolleyMultipartRequest createRequest(final Bitmap bmp, String url, final String name) {
-        return new VolleyMultipartRequest(Request.Method.POST, url,
+    public VolleyMultipartRequest createRequest(final SendPackage sendPackage) {
+        return new VolleyMultipartRequest(Request.Method.POST, sendPackage.getUploadURL(),
                 imgUploadResponse, imgUploadError)
         {
             @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("angle", String.valueOf(sendPackage.getImageDirection()));
+                params.put("longitude", String.valueOf(sendPackage.getImageLongitude()));
+                params.put("latitude", String.valueOf(sendPackage.getImageLatitude()));
+                return params;
+            }
+
+            @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
-                params.put("image", new DataPart(name, bitmapToByteArray(bmp)));
-                // TODO: put location & direction info into the parameters
+                params.put("image", new DataPart(sendPackage.getImagePath(),
+                        bitmapToByteArray(sendPackage.getCurrentImage())));
                 return params;
             }
         };
