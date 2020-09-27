@@ -34,7 +34,7 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     private final int CAMERA_PIC_REQUEST = 24;
     private String outPath;
     private Intent intent;
-    private double direction;
+    private double direction = SendPackage.INVALID;
     private double longitude;
     private double latitude;
 
@@ -50,18 +50,13 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
         super.onCreate(savedInstanceState);
         initComponents();
         askForPermission();
+        registerSensors();
         openCamera();
     }
 
     private void registerSensors() {
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerSensors();
     }
 
     @Override
