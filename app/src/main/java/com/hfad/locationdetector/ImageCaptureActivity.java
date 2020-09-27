@@ -1,10 +1,14 @@
 package com.hfad.locationdetector;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -12,17 +16,22 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 
-public class ImageCaptureActivity extends Activity implements SensorEventListener {
+public class ImageCaptureActivity extends Activity implements SensorEventListener, LocationListener {
 
-    private String [] permissions = {"android.permission.WRITE_EXTERNAL_STORAGE",
+    private String[] permissions = {"android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.ACCESS_FINE_LOCATION",
             "android.permission.READ_PHONE_STATE",
@@ -38,12 +47,18 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     private double longitude;
     private double latitude;
 
+
     // fields for sensors
     private SensorManager sensorManager;
     Sensor accelerometer;
     Sensor magnetometer;
     float[] mGravity = null;
     float[] mGeomagnetic = null;
+
+    //fields for location
+    private LocationManager locationManager;
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10;
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +67,8 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
         askForPermission();
         registerSensors();
         openCamera();
+        getCurrentLocation();
+
     }
 
     private void registerSensors() {
@@ -69,13 +86,77 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == CAMERA_PIC_REQUEST) {
-            getCurrentLocation();
             postCaptureHandle();
         } else finish();
     }
 
     private void getCurrentLocation() {
         // TODO: Implement this method
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        checkAndRequestLocationPermission();
+        Location loc = null;
+        locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (loc == null) {
+            loc = locationManager.getLastKnownLocation(
+                    LocationManager.NETWORK_PROVIDER);
+        }
+        if (loc != null) {
+            Log.d("Location: ", "not nulllllll");
+            getLatLng(loc);
+        }
+    }
+
+/*    private void getCurrentLocation() {
+        Location location = null;
+        Log.d("GPS Network", "get current location");
+        locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        //    boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        //    boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (isGPDEnabled) {
+            Log.d("GPS ", "get current location");
+            location = getLocationFromGPS();
+        }
+        else if (isNetworkEnabled) {
+            Log.d("Network", "get current location");
+            location = getLocationFromNetwork();
+        }
+        getLatLng(location);
+    }
+*/
+    private Location getLocationFromNetwork() {
+        checkAndRequestLocationPermission();
+        Log.d("Network", "get location from network");
+    //    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+    //            MIN_TIME_BW_UPDATES,
+    //            MIN_DISTANCE_CHANGE_FOR_UPDATES,
+    //            this);
+
+        Log.d("Network", "Network");
+        if (locationManager != null)
+            return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        return null;
+    }
+
+
+    private Location getLocationFromGPS() {
+        checkAndRequestLocationPermission();
+        locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                MIN_TIME_BW_UPDATES,
+                MIN_DISTANCE_CHANGE_FOR_UPDATES, (LocationListener) this);
+
+        Log.d("GPS Enabled", "GPS Enabled");
+        if (locationManager != null)
+            return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        return null;
+    }
+
+    private void getLatLng(Location location) {
+        if (location != null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+            Log.d("Location: ", String.valueOf(latitude)+" "+String.valueOf(longitude));
+        }
     }
 
     private void postCaptureHandle() {
@@ -134,6 +215,14 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
         }
     }
 
+    private void checkAndRequestLocationPermission() {
+        while (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 225);
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 225);
+        }
+    }
+
     /** Handle sensor changing **/
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -149,4 +238,11 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     }
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {}
+
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+
+    }
+
+
 }
