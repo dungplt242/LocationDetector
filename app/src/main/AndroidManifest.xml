@@ -23,6 +23,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen"
         android:requestLegacyExternalStorage="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="q">
         <activity android:name=".ImageCaptureActivity"
             android:configChanges="orientation|screenSize|screenLayout" />

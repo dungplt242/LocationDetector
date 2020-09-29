@@ -38,7 +38,7 @@ public class RecyclerMainAdapter extends RecyclerView.Adapter<RecyclerMainAdapte
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerMainAdapter.ViewHolder holder, int position) {
-        holder.imageView.setImageResource(options.get(position).getID());
+        holder.imageView.setImageIcon(options.get(position).getIcon());
         holder.textView.setText(options.get(position).getName());
     }
 

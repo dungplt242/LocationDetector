@@ -2,5 +2,5 @@
     <string name="app_name">LocationDetector</string>
     <string name="take_photo">TAKE PHOTO</string>
     <string name="image_store_folder">/sdcard/</string>
-    <string name="image_upload_url">http://192.168.1.4:8000/android_upload</string>
+    <string name="image_upload_url">http://192.168.1.10:8000/android_upload</string>
 </resources>

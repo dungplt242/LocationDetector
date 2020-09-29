@@ -1,7 +1,6 @@
 package com.hfad.locationdetector;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -12,15 +11,15 @@ import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ImageRequest {
+public class PackageRequest {
 
-    private static final ImageRequest imageRequest = new ImageRequest();
+    private static final PackageRequest PACKAGE_REQUEST = new PackageRequest();
 
-    public static ImageRequest Builder() {
-        return imageRequest;
+    public static PackageRequest Builder() {
+        return PACKAGE_REQUEST;
     }
 
-    private ImageRequest() {}
+    private PackageRequest() {}
 
     private Response.Listener<NetworkResponse> imgUploadResponse =
             new Response.Listener<NetworkResponse>() {
@@ -62,7 +61,7 @@ public class ImageRequest {
 
     private byte[] bitmapToByteArray(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
     }
 }
