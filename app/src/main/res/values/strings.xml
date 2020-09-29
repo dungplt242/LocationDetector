@@ -2,5 +2,6 @@
     <string name="app_name">LocationDetector</string>
     <string name="take_photo">TAKE PHOTO</string>
     <string name="image_store_folder">/sdcard/</string>
-    <string name="image_upload_url">http://192.168.1.4:8000/android_upload</string>
+    <string name="image_upload_url">http://192.168.1.15:8000/android_upload</string>
+    <string name="wikitude_key">lVOauPzJWz4p236/fMgjefZvckhuS1SL+takDqtPE7uAZVFbHugfv0BFTeN1q6z1wVyBqOBVdlplfVkbnoYy+roLlQLdm0ijfnYxWk7em3F6wCJhqDQnkUhU5e46syn4sS9SfZX29rBDsjsvuDdR3USmiMQWqv4JYoxoWmKEuRZTYWx0ZWRfX/F/G+aytMKOM9txsHmrFg3y7GSNvTzDK9JNxCTA93nW8vI348icclNewnSDMl0Fmq744RuBbvXLxxoA3tUonsKaMBYJT/Los8xX8V/skwP4IE7a8DQl2JZEANG8eyuTCf3nc8BZ4GgSmP1VVPLEHd/uqm4xk+GTC1IIkNi/psYWGrynAJJIkxHAZVaZRvUUVm0RHMjAMCyTxW22pZ+fa0zpcX5SbVEbSU1lUBZSYQZOuT0aZnADBpmvD1lyLo0lLzKeSw7j5KT8nahgN7plrjPKTMbErC6HrMGbcG1BBV32xeow30wRDA92QzbFRx+cV9vaB1ykcfdfHyAU8IUd4w+X6L/Or0jEdI573WEFogShSgVfNkLPJ1iSPCnVsauAkOrY1BFjem1AqABMIKwNbQXjIs9cLyHESha7+FPKY3fdKdO4do3YtHSKAtU/8+GjPBzfu8wlJ7nsxbdsn1vL8Eh8jN/NInRDNtpTADDqpUzobZcKrimqreZZj1BYvL6xO1RzgPNAG76sHsHErjaql8WKKUgNw3AWqXD1Li1M+RCEIlEcE3hQvsvhNdgzECk/7KOWXOgVgtukIXbIeWJbwfcfKHYKrQ3MCgz5PlbX/MKa+a7EAWqo0ZW7d/oKSRLR4GOOIFMGMLLIdvH/ubnXIhH7+LeVUnTzhCYC1nqUcvaKtm04ouK5MWc=</string>
 </resources>

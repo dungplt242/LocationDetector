@@ -1,5 +1,6 @@
 package com.hfad.locationdetector;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -15,6 +16,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.Volley;
+import com.wikitude.architect.ArchitectView;
+import com.wikitude.common.permission.PermissionManager;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -23,10 +26,10 @@ import java.util.ArrayList;
 public class MainActivity extends Activity implements RecyclerMainAdapter.ItemClickListener {
 
     // user options resources
-    private final int[] optionID =
-            {R.drawable.ic_gallery, R.drawable.ic_camera, R.drawable.ic_send};
-    private final String[] optionName = {"Gallery", "Camera", "Send"};
-    private enum Option {GALLERY, CAMERA, SEND}
+    private final int[] optionID = {R.drawable.ic_vr_glasses,
+            R.drawable.ic_gallery, R.drawable.ic_camera, R.drawable.ic_send};
+    private final String[] optionName = {"AR", "Gallery", "Camera", "Send"};
+    private enum Option {AR, GALLERY, CAMERA, SEND}
 
     // request code
     private final int CAMERA_REQUEST = 42;
@@ -37,9 +40,12 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     private ArrayList<AppOption> options;
     private RecyclerMainAdapter mainAdapter;
 
-    // image related fields TODO: Put the fields inside a class
+    // image related fields
     private ImageView imageView;
     private SendPackage sendPackage;
+
+    // AR view related fields
+    private final PermissionManager permissionManager = ArchitectView.getPermissionManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +120,7 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     }
 
     private void getGalleryImagePath(Uri imageUri) {
-        sendPackage.setImagePath(imageUri.getPath());
+        sendPackage.setImagePath(imageUri.getPath() + ".jpg");
     }
 
     private void displayGalleryImage(Uri imageUri) throws FileNotFoundException {
@@ -138,11 +144,28 @@ public class MainActivity extends Activity implements RecyclerMainAdapter.ItemCl
     public void onClick(int position) {
         Option userOption = Option.values()[position];
         switch (userOption) {
+            case AR: openARCamera(); break;
             case GALLERY: openGallery(); break;
             case CAMERA: openCamera(); break;
             case SEND: sendImageToServer(); break;
             default:
         }
+    }
+
+    private void openARCamera() {
+        final String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
+        permissionManager.checkPermissions(MainActivity.this, permissions,
+                PermissionManager.WIKITUDE_PERMISSION_REQUEST, new PermissionManager.PermissionManagerCallback() {
+            @Override
+            public void permissionsGranted(int requestCode) {
+                final Intent intent = new Intent(MainActivity.this, ARActivity.class);
+                startActivity(intent);
+            }
+            @Override
+            public void permissionsDenied(@NonNull String[] deniedPermissions) {}
+            @Override
+            public void showPermissionRationale(final int requestCode, @NonNull String[] strings) {}
+        });
     }
 
     private void openCamera() {
