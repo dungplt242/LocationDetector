@@ -36,7 +36,7 @@ public class PackageRequest {
         }
     };
 
-    public VolleyMultipartRequest createRequest(final SendPackage sendPackage) {
+    public VolleyMultipartRequest createRequest(final MainViewModel sendPackage) {
         return new VolleyMultipartRequest(Request.Method.POST, sendPackage.getUploadURL(),
                 imgUploadResponse, imgUploadError)
         {
@@ -53,7 +53,7 @@ public class PackageRequest {
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
                 params.put("image", new DataPart(sendPackage.getImagePath(),
-                        bitmapToByteArray(sendPackage.getCurrentImage())));
+                        bitmapToByteArray(sendPackage.getCurrentImage().getValue())));
                 return params;
             }
         };
