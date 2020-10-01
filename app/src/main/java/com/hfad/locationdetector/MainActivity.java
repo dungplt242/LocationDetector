@@ -1,5 +1,6 @@
 package com.hfad.locationdetector;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -34,6 +35,8 @@ import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.wikitude.architect.ArchitectView;
+import com.wikitude.common.permission.PermissionManager;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
@@ -55,5 +58,27 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    // AR view related fields
+    private final PermissionManager permissionManager = ArchitectView.getPermissionManager();
+
+    R.drawable.ic_vr_glasses
+    "AR"
+    AR
+    private void openARCamera() {
+        final String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
+        permissionManager.checkPermissions(MainActivity.this, permissions,
+                PermissionManager.WIKITUDE_PERMISSION_REQUEST, new PermissionManager.PermissionManagerCallback() {
+                    @Override
+                    public void permissionsGranted(int requestCode) {
+                        final Intent intent = new Intent(MainActivity.this, ARActivity.class);
+                        startActivity(intent);
+                    }
+                    @Override
+                    public void permissionsDenied(@NonNull String[] deniedPermissions) {}
+                    @Override
+                    public void showPermissionRationale(final int requestCode, @NonNull String[] strings) {}
+                });
     }
 }
