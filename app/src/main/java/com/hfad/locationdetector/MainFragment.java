@@ -1,5 +1,6 @@
 package com.hfad.locationdetector;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -25,9 +26,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
@@ -45,11 +43,15 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.wikitude.architect.ArchitectView;
+import com.wikitude.common.permission.PermissionManager;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -59,15 +61,13 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
-import static android.app.Activity.RESULT_OK;
-
 public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemClickListener {
 
     // user options resources
     private final int[] optionID =
-            {R.drawable.ic_gallery, R.drawable.ic_camera, R.drawable.ic_send, R.drawable.ic_send};
-    private final String[] optionName = {"Gallery", "Camera", "Send", "Test"};
-    private enum Option {GALLERY, CAMERA, SEND, TEST}
+            {R.drawable.ic_vr_glasses, R.drawable.ic_gallery, R.drawable.ic_camera, R.drawable.ic_send, R.drawable.ic_send, R.drawable.ic_image};
+    private final String[] optionName = {"AR", "Gallery", "Camera", "Send", "Test", "Images"};
+    private enum Option {AR, GALLERY, CAMERA, SEND, TEST, IMAGES}
 
     // recycler view related fields
     private RecyclerView recyclerView;
@@ -77,6 +77,12 @@ public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemCl
     // image related fields
     private ImageView imageView;
     MainViewModel sendPackage;
+
+    // to navigate between fragments
+    NavController navController;
+
+    // for AR
+    private final PermissionManager permissionManager = ArchitectView.getPermissionManager();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,11 +108,13 @@ public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemCl
             }
         });
         displayOptions();
+        getFeaturesList();
     }
 
     private void initComponents() {
         sendPackage = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        sendPackage.setUploadURL("http://192.168.1.10:8000/images");
+        sendPackage.setUploadURL(getString(R.string.images_url));
+        navController = NavHostFragment.findNavController(this);
     }
 
     /** Display options on the recycler view **/
@@ -153,6 +161,7 @@ public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemCl
     public void onClick(int position) {
         Option userOption = Option.values()[position];
         switch (userOption) {
+            case AR: openARCamera(); break;
             case GALLERY: openGallery(); break;
             case CAMERA: openCamera(); break;
             case SEND: sendImageToServer(); break;
@@ -162,7 +171,6 @@ public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemCl
     }
 
     private void openCamera() {
-        NavController navController = NavHostFragment.findNavController(this);
         navController.navigate(R.id.imageCaptureFragment);
     }
 
@@ -172,42 +180,35 @@ public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemCl
         galleryResultLauncher.launch(photoPickerIntent);
     }
 
-    private void testFunction() {
-        testRequest();
-
-//        SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-////        editor.clear();
-////        editor.commit();
-//        Map<String, ?> allPrefs = sharedPreferences.getAll();
-//        Log.d("[DEBUG]", "Preferences length = " + allPrefs.size());
-//        Log.d("[DEBUG]", "Version = " + sharedPreferences.getString("version", null));
+    private void openARCamera() {
+        final String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
+        permissionManager.checkPermissions(requireActivity(), permissions,
+                PermissionManager.WIKITUDE_PERMISSION_REQUEST, new PermissionManager.PermissionManagerCallback() {
+                    @Override
+                    public void permissionsGranted(int requestCode) {
+                        navController.navigate(R.id.ARActivity);
+                    }
+                    @Override
+                    public void permissionsDenied(@NonNull String[] deniedPermissions) {}
+                    @Override
+                    public void showPermissionRationale(final int requestCode, @NonNull String[] strings) {}
+                });
     }
 
-    private void testRequest() {
-        SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
-//        JsonObjectRequest featuresRequest = new JsonObjectRequest(Request.Method.GET, "http://192.168.1.10:8000/features", null, new Response.Listener<JSONObject>() {
-//            @Override
-//            public void onResponse(JSONObject response) {
-//                try {
-//                    displayToastMessage("Version is " + response.get("version"));
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                parseVolleyError(error);
-//            }
-//        });
-//        Volley.newRequestQueue(this).add(featuresRequest);
-
-        StringRequest testRequest = new StringRequest(Request.Method.GET, "http://192.168.1.10:8000/images/1", new Response.Listener<String>() {
+    private void getFeaturesList() {
+        final SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        JsonObjectRequest featuresRequest = new JsonObjectRequest(Request.Method.GET, "http://192.168.1.10:8000/features", null, new Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(String response) {
-                Log.d("[DEBUG]", "response = " + response);
+            public void onResponse(JSONObject response) {
+                try {
+                    String version = response.getString("version");
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("version", version);
+                    editor.commit();
+                    displayToastMessage("Version is " + version);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }, new Response.ErrorListener() {
             @Override
@@ -215,7 +216,28 @@ public class MainFragment extends Fragment implements RecyclerMainAdapter.ItemCl
                 parseVolleyError(error);
             }
         });
-        Volley.newRequestQueue(getActivity()).add(testRequest);
+        Volley.newRequestQueue(getActivity()).add(featuresRequest);
+    }
+
+    private void testFunction() {
+        testRequest();
+    }
+
+    private void testRequest() {
+
+//
+//        StringRequest testRequest = new StringRequest(Request.Method.GET, "http://192.168.1.10:8000/images/1", new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                Log.d("[DEBUG]", "response = " + response);
+//            }
+//        }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                parseVolleyError(error);
+//            }
+//        });
+//        Volley.newRequestQueue(getActivity()).add(testRequest);
 
 //        float density = getResources().getConfiguration().densityDpi;
 //        int px = (int) Math.ceil(24 * density / 160);

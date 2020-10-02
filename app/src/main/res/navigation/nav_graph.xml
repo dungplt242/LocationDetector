@@ -11,9 +11,16 @@
         <action
             android:id="@+id/action_mainFragment_to_imageCaptureFragment"
             app:destination="@id/imageCaptureFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_ARActivity"
+            app:destination="@id/ARActivity" />
     </fragment>
     <fragment
         android:id="@+id/imageCaptureFragment"
         android:name="com.hfad.locationdetector.ImageCaptureFragment"
         android:label="ImageCaptureFragment" />
+    <activity
+        android:id="@+id/ARActivity"
+        android:name="com.hfad.locationdetector.ARActivity"
+        android:label="ARActivity" />
 </navigation>

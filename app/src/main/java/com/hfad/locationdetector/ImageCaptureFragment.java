@@ -119,6 +119,8 @@ public class ImageCaptureFragment extends Fragment implements SensorEventListene
                         // There are no request code
                         postCaptureHandle();
                     }
+                    // pop this fragment so it doesn't show white screen
+                    getActivity().getSupportFragmentManager().popBackStack();
                 }
             });
 

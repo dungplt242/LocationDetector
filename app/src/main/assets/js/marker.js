@@ -73,6 +73,36 @@ function Marker(poiData) {
     });
 
     /*
+        The representation of an AR.GeoObject in the radar is defined in its drawables set (second argument of
+        AR.GeoObject constructor).
+        Once drawables.radar is set the object is also shown on the radar e.g. as an AR.Circle
+    */
+    this.radarCircle = new AR.Circle(0.03, {
+        horizontalAnchor: AR.CONST.HORIZONTAL_ANCHOR.CENTER,
+        opacity: 0.8,
+        style: {
+            fillColor: "#ffffff"
+        }
+    });
+
+    /*
+        Additionally create circles with a different color for the selected state.
+    */
+    this.radarCircleSelected = new AR.Circle(0.05, {
+        horizontalAnchor: AR.CONST.HORIZONTAL_ANCHOR.CENTER,
+        opacity: 0.8,
+        style: {
+            fillColor: "#0066ff"
+        }
+    });
+
+    this.radardrawables = [];
+    this.radardrawables.push(this.radarCircle);
+
+    this.radardrawablesSelected = [];
+    this.radardrawablesSelected.push(this.radarCircleSelected);
+
+    /*
         Create the AR.GeoObject with the drawable objects and define the AR.ImageDrawable as an indicator target on
         the marker AR.GeoObject. The direction indicator is displayed automatically when necessary. AR.Drawable
         subclasses (e.g. AR.Circle) can be used as direction indicators.
@@ -80,7 +110,8 @@ function Marker(poiData) {
     this.markerObject = new AR.GeoObject(markerLocation, {
         drawables: {
             cam: [this.markerDrawableIdle, this.markerDrawableSelected, this.titleLabel, this.descriptionLabel],
-            indicator: this.directionIndicatorDrawable
+            indicator: this.directionIndicatorDrawable,
+            radar: this.radardrawables
         }
     });
 
