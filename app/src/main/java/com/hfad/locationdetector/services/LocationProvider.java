@@ -1,4 +1,4 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.services;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

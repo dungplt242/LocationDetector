@@ -1,4 +1,4 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.ui;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -24,11 +24,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.util.Log;
+
+import com.hfad.locationdetector.utils.ImageHandling;
+import com.hfad.locationdetector.utils.LocationHandling;
+import com.hfad.locationdetector.models.MainViewModel;
+import com.hfad.locationdetector.R;
 
 import java.io.File;
 
-import static android.app.Activity.RESULT_OK;
 import static android.content.Context.SENSOR_SERVICE;
 
 public class ImageCaptureFragment extends Fragment implements SensorEventListener {
@@ -41,10 +44,9 @@ public class ImageCaptureFragment extends Fragment implements SensorEventListene
             "android.permission.CAMERA",
             "android.permission.ACCESS_COARSE_LOCATION",
             "android.permission.ACCESS_FINE_LOCATION"};
-
     private String outPath;
     private Bundle fragmentResult;
-    private double direction = SendPackage.INVALID;
+    private double direction = MainViewModel.INVALID;
     private double longitude;
     private double latitude;
 

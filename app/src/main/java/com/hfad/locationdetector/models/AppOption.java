@@ -1,4 +1,4 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.models;
 
 import android.graphics.drawable.Icon;
 

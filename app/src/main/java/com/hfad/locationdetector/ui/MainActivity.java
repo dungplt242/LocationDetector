@@ -1,7 +1,9 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.ui;
 
 import android.os.Bundle;
 import androidx.fragment.app.FragmentActivity;
+
+import com.hfad.locationdetector.R;
 
 public class MainActivity extends FragmentActivity {
     @Override

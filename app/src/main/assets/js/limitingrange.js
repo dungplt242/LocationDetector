@@ -3,7 +3,7 @@
     places near given location.
  */
 var ServerInformation = {
-    POIDATA_SERVER: "http://192.168.1.10:8000/get_location_json" // edit this url
+    POIDATA_SERVER: "http://192.168.1.8:8000/get_location_json" // edit this url
 };
 
 /* Implementation of AR-Experience (aka "World"). */

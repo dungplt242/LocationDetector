@@ -1,16 +1,19 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.ui;
 
-import android.content.ClipData;
-import android.content.Context;
+import android.graphics.Outline;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewStub;
+import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.hfad.locationdetector.R;
+import com.hfad.locationdetector.models.AppOption;
 
 import java.util.ArrayList;
 
