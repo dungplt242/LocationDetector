@@ -1,4 +1,4 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.services;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -194,7 +194,7 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
         dataOutputStream.writeBytes(lineEnd);
     }
 
-    class DataPart {
+    public class DataPart {
 
         private String fileName;
         private byte[] content;
@@ -202,7 +202,7 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
 
         public DataPart() {}
 
-        DataPart(String name, byte[] data) {
+        public DataPart(String name, byte[] data) {
             fileName = name;
             content = data;
         }

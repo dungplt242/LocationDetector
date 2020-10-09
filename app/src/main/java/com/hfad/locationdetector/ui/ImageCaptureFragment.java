@@ -1,7 +1,13 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.ui;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.app.Activity;
@@ -19,9 +25,16 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 
+import com.hfad.locationdetector.utils.ImageHandling;
+import com.hfad.locationdetector.utils.LocationHandling;
+import com.hfad.locationdetector.models.MainViewModel;
+import com.hfad.locationdetector.R;
+
 import java.io.File;
 
-public class ImageCaptureActivity extends Activity implements SensorEventListener {
+import static android.content.Context.SENSOR_SERVICE;
+
+public class ImageCaptureFragment extends Fragment implements SensorEventListener {
 
     private String[] permissions = {"android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
@@ -31,11 +44,9 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
             "android.permission.CAMERA",
             "android.permission.ACCESS_COARSE_LOCATION",
             "android.permission.ACCESS_FINE_LOCATION"};
-
-    private final int CAMERA_PIC_REQUEST = 24;
     private String outPath;
-    private Intent intent;
-    private double direction = SendPackage.INVALID;
+    private Bundle fragmentResult;
+    private double direction = MainViewModel.INVALID;
     private double longitude;
     private double latitude;
 
@@ -49,8 +60,10 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     // fields related to location
     LocationHandling locationHandling;
 
+    MainViewModel sendPackage;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initComponents();
         askForPermission();
@@ -78,31 +91,18 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
 
     /** Unregister the sensors **/
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         sensorManager.unregisterListener(this);
     }
 
     /** Finish taking photo **/
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == CAMERA_PIC_REQUEST) {
-            postCaptureHandle();
-        } else finish();
-    }
-
     private void postCaptureHandle() {
-        deliverInfoToIntent();
-        setResult(RESULT_OK, intent);
-        finish();
-    }
-
-    private void deliverInfoToIntent() {
-        intent.putExtra("imagePath", outPath);
-        intent.putExtra("imageDirection", direction);
-        intent.putExtra("imageLongitude", longitude);
-        intent.putExtra("imageLatitude", latitude);
+        fragmentResult.putString("imagePath", outPath);
+        fragmentResult.putDouble("imageDirection", direction);
+        fragmentResult.putDouble("imageLongitude", longitude);
+        fragmentResult.putDouble("imageLatitude", latitude);
+        sendPackage.update(fragmentResult);
     }
 
     /** Handle orientation change **/
@@ -112,11 +112,25 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
         if (!outPath.isEmpty()) postCaptureHandle();
     }
 
+    ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        // There are no request code
+                        postCaptureHandle();
+                    }
+                    // pop this fragment so it doesn't show white screen
+                    getActivity().getSupportFragmentManager().popBackStack();
+                }
+            });
+
     private void openCamera() {
         setStrictMode();
         Intent intent = (new Intent()).setAction(MediaStore.ACTION_IMAGE_CAPTURE);
         setCaptureImageTemporaryPath(intent);
-        startActivityForResult(intent, CAMERA_PIC_REQUEST);
+        cameraResultLauncher.launch(intent);
     }
 
     private void setCaptureImageTemporaryPath(Intent intent) {
@@ -133,18 +147,19 @@ public class ImageCaptureActivity extends Activity implements SensorEventListene
     }
 
     private void initComponents() {
-        intent = getIntent();
-        locationHandling = new LocationHandling(this);
-        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE); // init sensors
+        fragmentResult = new Bundle();
+        locationHandling = new LocationHandling(getActivity());
+        sensorManager = (SensorManager) getActivity().getSystemService(SENSOR_SERVICE); // init sensors
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sendPackage = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void askForPermission() {
         int requestCode = 200;
         while (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                getActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
                         PackageManager.PERMISSION_GRANTED) {
             requestPermissions(permissions, requestCode);
         }

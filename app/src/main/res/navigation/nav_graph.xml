@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.hfad.locationdetector.ui.MainFragment"
+        android:label="MainFragment" >
+        <action
+            android:id="@+id/action_mainFragment_to_imageCaptureFragment"
+            app:destination="@id/imageCaptureFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_ARActivity"
+            app:destination="@id/ARActivity" />
+        <action
+            android:id="@+id/action_mainFragment_to_imageListFragment"
+            app:destination="@id/imageListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/imageCaptureFragment"
+        android:name="com.hfad.locationdetector.ui.ImageCaptureFragment"
+        android:label="ImageCaptureFragment" />
+    <activity
+        android:id="@+id/ARActivity"
+        android:name="com.hfad.locationdetector.ui.ARActivity"
+        android:label="ARActivity" />
+    <fragment
+        android:id="@+id/imageListFragment"
+        android:name="com.hfad.locationdetector.ui.ImageListFragment"
+        android:label="ImageListFragment" />
+</navigation>

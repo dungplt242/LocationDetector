@@ -1,14 +1,15 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.ui;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 
+import com.hfad.locationdetector.services.LocationProvider;
+import com.hfad.locationdetector.R;
 import com.wikitude.architect.ArchitectStartupConfiguration;
 import com.wikitude.architect.ArchitectView;
 import com.wikitude.common.camera.CameraSettings;

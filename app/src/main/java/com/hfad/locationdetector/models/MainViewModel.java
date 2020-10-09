@@ -1,27 +1,30 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.models;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 
-public class SendPackage {
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
+import com.hfad.locationdetector.utils.ImageHandling;
+
+public class MainViewModel extends ViewModel {
     public static final double INVALID = 812;
 
     private String imagePath;
     private String uploadURL;
-    private Bitmap currentImage;
-    private double imageLongitude;
-    private double imageLatitude;
+    private int currentImageID;
+    private MutableLiveData<String> titleText = new MutableLiveData<>();
+    private MutableLiveData<Bitmap> currentImage = new MutableLiveData<>();
+    private double imageLongitude = INVALID;
+    private double imageLatitude = INVALID;
 
     /** The angle that the current device makes with the North pole
      *  counter clockwise, range from -179 to 180.
      *  North: 0.0, West: 90.0, South: 180.0, East: -90.0 **/
-    private double imageDirection;
-
-    public SendPackage() {
-        imageDirection = imageLongitude = imageLatitude = INVALID;
-    }
+    private double imageDirection = INVALID;
 
     public String getImagePath() {
         return imagePath;
@@ -39,12 +42,12 @@ public class SendPackage {
         this.uploadURL = uploadURL;
     }
 
-    public Bitmap getCurrentImage() {
+    public LiveData<Bitmap> getCurrentImage() {
         return currentImage;
     }
 
     public void setCurrentImage(Bitmap currentImage) {
-        this.currentImage = currentImage;
+        this.currentImage.setValue(currentImage);
     }
 
     public double getImageDirection() {
@@ -71,12 +74,12 @@ public class SendPackage {
         this.imageLatitude = imageLatitude;
     }
 
-    public void update(Intent data) {
-        imagePath = data.getStringExtra("imagePath");
-        imageDirection = data.getDoubleExtra("imageDirection", SendPackage.INVALID);
-        imageLongitude = data.getDoubleExtra("imageLongitude", SendPackage.INVALID);
-        imageLatitude = data.getDoubleExtra("imageLatitude", SendPackage.INVALID);
-        currentImage = getCapturedImageFromOutPath();
+    public void update(Bundle data) {
+        imagePath = data.getString("imagePath");
+        imageDirection = data.getDouble("imageDirection", INVALID);
+        imageLongitude = data.getDouble("imageLongitude", INVALID);
+        imageLatitude = data.getDouble("imageLatitude", INVALID);
+        currentImage.setValue(getCapturedImageFromOutPath());
     }
 
     private Bitmap getCapturedImageFromOutPath() {
@@ -84,5 +87,21 @@ public class SendPackage {
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap image = BitmapFactory.decodeFile(imagePath, options);
         return ImageHandling.Builder().adjustImageOrientation(image, imagePath);
+    }
+
+    public int getCurrentImageID() {
+        return currentImageID;
+    }
+
+    public void setCurrentImageID(int currentImageID) {
+        this.currentImageID = currentImageID;
+    }
+
+    public MutableLiveData<String> getTitleText() {
+        return titleText;
+    }
+
+    public void setTitleText(String titleText) {
+        this.titleText.setValue(titleText);
     }
 }

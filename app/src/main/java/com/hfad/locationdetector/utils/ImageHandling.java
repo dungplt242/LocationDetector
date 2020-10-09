@@ -1,4 +1,4 @@
-package com.hfad.locationdetector;
+package com.hfad.locationdetector.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
